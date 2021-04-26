@@ -12,11 +12,17 @@ export default class Game {
 			this.gameBoard.push(currRow)
 		}
 		this.players = { player1: null, player2: null }
-		this.turn = Math.round(Math.random())
+		this.turn = this.getRandInt(1, 3)
 		this.code = code
 		this.gameOver = false
 		this.winner = null
 		this.generateBoard()
+	}
+
+	getRandInt(min, max) {
+		min = Math.ceil(min)
+		max = Math.floor(max)
+		return Math.floor(Math.random() * (max - min) + min)
 	}
 
 	generateBoard() {
@@ -65,14 +71,29 @@ export default class Game {
 			return false
 		}
 
-        // TODO
 		this.gameBoard[row][col].flip()
-		if (this.checkCorrect()) {
-			response.correct = true
+		currPlayer[currPlayer.moveCount] = { row, col }
+		if (!currPlayer.moveable()) {
+			if (this.checkCorrect(currPlayer)) {
+				currPlayer.score += 2
+				currPlayer.moveCount = 0
+				if (this.checkWin()) {
+					this.response = { status: "over", winner: current }
+				}
+			} else {
+				this.turn = this.turn === 1 ? 2 : 1
+			}
 		}
 	}
 
-    // TODO
-    checkCorrect(){
-    }
+	checkCorrect(currPlayer) {
+		let id1 = this.gameBoard[currPlayer.gameCards[0].row][currPlayer.gameCards[0].col]
+		let id2 = this.gameBoard[currPlayer.gameCards[1].row][currPlayer.gameCards[1].col]
+
+		return id1 === id2
+	}
+
+	checkWin() {
+		return this.gameBoard.every((gameCard) => gameCard.flipped === true)
+	}
 }
