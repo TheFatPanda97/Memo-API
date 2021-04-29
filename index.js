@@ -16,12 +16,21 @@ app.listen(port)
 // SECTION ws
 import ws from "ws"
 import Game from "./model/Game"
-const WebSocketServer = ws.Server
-var wss = new WebSocketServer({ port: port + 1 })
+const wss = new ws.Server({ port: port + 1 })
 let game = new Game(1234)
 
 wss.on("connection", (ws, request) => {
 	console.log("new client")
+	ws.send("hello there")
+
+	ws.on("message", (message) => {
+		message = JSON.parse(message)
+		switch (message.type) {
+			case "init":
+				game.addPlayer(message.name)
+                break
+		}
+	})
 })
 
 // !SECTION ws
