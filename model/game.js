@@ -2,7 +2,7 @@ import GameCard from "./GameCard"
 import Player from "./Player"
 
 export default class Game {
-	constructor(code) {
+	constructor() {
 		this.gameBoard = []
 		for (let i = 0; i < 8; i++) {
 			let currRow = []
@@ -13,7 +13,6 @@ export default class Game {
 		}
 		this.players = { player1: null, player2: null }
 		this.turn = this.getRandInt(1, 3)
-		this.code = code
 		this.gameOver = false
 		this.winner = null
 		this.generateBoard()
