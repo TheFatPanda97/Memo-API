@@ -38,19 +38,61 @@ const randomGameId = () => {
 	return id;
 };
 
+const serialize = (json) => {
+	return JSON.stringify(json);
+};
+
 wss.on("connection", (ws, request) => {
 	console.log("new client");
 
 	ws.on("message", (message) => {
+		let gameId;
+		let game;
+		let name;
+		let userId;
 		message = JSON.parse(message);
 		switch (message.type) {
 			case "init":
-				let gameId = randomGameId();
+				gameId = randomGameId();
 				games[gameId] = new Game(randomGameId());
-				let game = games[gameId];
-				game.addPlayer(message.name);
-				ws.send(JSON.stringify({ type: "gameId", gameId }));
+				game = games[gameId];
+
+				game.addPlayer(message.name, ws);
+
+				ws.send(serialize({ type: "gameId", gameId }));
+				ws.send(serialize({ type: "userId", userId: 1 }));
 				console.log(games);
+				break;
+			case "join":
+				if (message.gameId in games) {
+					gameId = message.gameId;
+					game = games[gameId];
+
+					game.addPlayer(message.name, ws);
+
+					ws.send(serialize({ type: "gameId", gameId }));
+					ws.send(serialize({ type: "userId", userId: 2 }));
+					game.getPlayer1().send(serialize({ type: "user2n", name: message.name }));
+					game
+						.getPlayer2()
+						.send(serialize({ type: "user2n", name: game.getPlayer1().name }));
+				} else {
+					ws.send(serialize({ type: "error", message: "invalid game id" }));
+				}
+				console.log(games);
+				break;
+			case "updateName":
+				gameId = message.gameId;
+				userId = message.userId;
+				name = message.name;
+				game = games[gameId];
+				if (userId === 1) {
+					game.getPlayer1().setName(name);
+					game.getPlayer2().send(serialize({ type: "user2n", name }));
+				} else if (userId === 2) {
+					game.getPlayer2().setName(name);
+					game.getPlayer1().send(serialize({ type: "user2n", name }));
+				}
 				break;
 		}
 	});
