@@ -62,6 +62,14 @@ export default class Game {
 		}
 	}
 
+	removePlayer(id) {
+		if (id === 1) {
+			this.players.player1 = null;
+		} else if (id === 2) {
+			this.players.player2 = null;
+		}
+	}
+
 	makeMove(name, row, col) {
 		let currPlayer,
 			response = {};

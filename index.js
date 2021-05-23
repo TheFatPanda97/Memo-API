@@ -45,6 +45,19 @@ const serialize = (json) => {
 wss.on("connection", (ws, request) => {
 	console.log("new client");
 
+	ws.on("close", () => {
+		if (ws.gameId in games) {
+      console.log("removing games");
+      let game = games[ws.gameId];
+			let player1 = game.getPlayer1();
+			let player2 = game.getPlayer2();
+			if (!player1 && !player2) {
+        delete games[ws.gameId];
+			}
+		}
+		console.log(games);
+	});
+
 	ws.on("message", (message) => {
 		let gameId;
 		let game;
@@ -56,43 +69,58 @@ wss.on("connection", (ws, request) => {
 				gameId = randomGameId();
 				games[gameId] = new Game(randomGameId());
 				game = games[gameId];
+				ws.gameId = gameId;
+				ws.userId = 1;
 
 				game.addPlayer(message.name, ws);
 
 				ws.send(serialize({ type: "gameId", gameId }));
-				ws.send(serialize({ type: "userId", userId: 1 }));
 				console.log(games);
 				break;
 			case "join":
 				if (message.gameId in games) {
 					gameId = message.gameId;
 					game = games[gameId];
+					ws.gameId = gameId;
+					ws.userId = 2;
 
 					game.addPlayer(message.name, ws);
 
 					ws.send(serialize({ type: "gameId", gameId }));
-					ws.send(serialize({ type: "userId", userId: 2 }));
-					game.getPlayer1().send(serialize({ type: "user2n", name: message.name }));
+					game.getPlayer1().send(serialize({ type: "player2Name", name: message.name }));
 					game
 						.getPlayer2()
-						.send(serialize({ type: "user2n", name: game.getPlayer1().name }));
+						.send(serialize({ type: "player2Name", name: game.getPlayer1().name }));
 				} else {
 					ws.send(serialize({ type: "error", message: "invalid game id" }));
+					ws.close();
 				}
 				console.log(games);
 				break;
 			case "updateName":
-				gameId = message.gameId;
-				userId = message.userId;
+				gameId = ws.gameId;
+				userId = ws.userId;
 				name = message.name;
 				game = games[gameId];
 				if (userId === 1) {
 					game.getPlayer1().setName(name);
-					game.getPlayer2().send(serialize({ type: "user2n", name }));
+					if (game.getPlayer2()) {
+						game.getPlayer2().send(serialize({ type: "player2Name", name }));
+					}
 				} else if (userId === 2) {
 					game.getPlayer2().setName(name);
-					game.getPlayer1().send(serialize({ type: "user2n", name }));
+					if (game.getPlayer1()) {
+						game.getPlayer1().send(serialize({ type: "player2Name", name }));
+					}
 				}
+				break;
+			case "removePlayer":
+				userId = ws.userId;
+				gameId = ws.gameId;
+				game = games[gameId];
+				game.removePlayer(userId);
+				ws.close();
+				console.log(games);
 				break;
 		}
 	});
