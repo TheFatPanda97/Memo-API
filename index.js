@@ -47,15 +47,14 @@ wss.on("connection", (ws, request) => {
 
 	ws.on("close", () => {
 		if (ws.gameId in games) {
-      console.log("removing games");
-      let game = games[ws.gameId];
+			console.log("removing games");
+			let game = games[ws.gameId];
 			let player1 = game.getPlayer1();
 			let player2 = game.getPlayer2();
 			if (!player1 && !player2) {
-        delete games[ws.gameId];
+				delete games[ws.gameId];
 			}
 		}
-		console.log(games);
 	});
 
 	ws.on("message", (message) => {
@@ -63,6 +62,7 @@ wss.on("connection", (ws, request) => {
 		let game;
 		let name;
 		let userId;
+		let coord;
 		message = JSON.parse(message);
 		switch (message.type) {
 			case "init":
@@ -75,7 +75,7 @@ wss.on("connection", (ws, request) => {
 				game.addPlayer(message.name, ws);
 
 				ws.send(serialize({ type: "gameId", gameId }));
-				console.log(games);
+
 				break;
 			case "join":
 				if (message.gameId in games) {
@@ -95,7 +95,7 @@ wss.on("connection", (ws, request) => {
 					ws.send(serialize({ type: "error", message: "invalid game id" }));
 					ws.close();
 				}
-				console.log(games);
+
 				break;
 			case "updateName":
 				gameId = ws.gameId;
@@ -114,13 +114,23 @@ wss.on("connection", (ws, request) => {
 					}
 				}
 				break;
+			case "move":
+				gameId = ws.gameId;
+				userId = ws.userId;
+				game = games[gameId];
+				coord = message.coord;
+				game.makeMove(userId, coord.i, coord.j);
+				console.log(game.getBoard());
+				game.getPlayer1().send(serialize({ type: "board", board: game.getBoard() }));
+				game.getPlayer2().send(serialize({ type: "board", board: game.getBoard() }));
+				break;
 			case "removePlayer":
 				userId = ws.userId;
 				gameId = ws.gameId;
 				game = games[gameId];
 				game.removePlayer(userId);
 				ws.close();
-				console.log(games);
+
 				break;
 		}
 	});

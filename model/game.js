@@ -26,6 +26,10 @@ export default class Game {
 		return this.players.player2;
 	}
 
+	getBoard() {
+		return this.gameBoard.map((row) => row.map((card) => card.flipped));
+	}
+
 	getRandInt(min, max) {
 		min = Math.ceil(min);
 		max = Math.floor(max);
@@ -70,17 +74,22 @@ export default class Game {
 		}
 	}
 
-	makeMove(name, row, col) {
+	makeMove(userId, row, col) {
+    console.log(userId);
+    
 		let currPlayer,
-			response = {};
-		valid = false;
-		if (this.players.player1.name === name) {
-			currPlayer = this.players.player1;
+    response = {},
+    valid = false;
+    
+		if (userId === 1) {
+      currPlayer = this.players.player1;
 			valid = this.turn === 1;
-		} else if (this.players.player2.name === name) {
-			currPlayer = this.players.player2;
+		} else if (userId === 2) {
+      currPlayer = this.players.player2;
 			valid = this.turn === 2;
 		}
+
+    console.log(valid);
 
 		if (!valid) {
 			return false;
