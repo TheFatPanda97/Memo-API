@@ -1,33 +1,33 @@
 export default class Player {
-	constructor(name, ws) {
-		this.name = name;
-		this.score = 0;
-		this.moveCount = 0;
-		this.gameCards = [null, null];
-		this.ws = ws;
-	}
-
-	setName(name) {
-		this.name = name;
-	}
-
-	setScore(score) {
-		this.score = score;
-	}
-
-	setWs(ws) {
-		this.ws = ws;
-	}
-
-  send(message){
-    this.ws.send(message)
+  constructor(name, ws) {
+    this.name = name;
+    this.score = 0;
+    this.moveCount = 0;
+    this.gameCards = [null, null];
+    this.ws = ws;
   }
 
-	increaseMoveCount() {
-		this.moveCount++;
-	}
+  setName(name) {
+    this.name = name;
+  }
 
-	moveable() {
-		return this.moveCount < 2;
-	}
+  setScore(score) {
+    this.score = score;
+  }
+
+  setWs(ws) {
+    this.ws = ws;
+  }
+
+  send(message) {
+    this.ws.send(message);
+  }
+
+  increaseMoveCount() {
+    this.moveCount += 1;
+  }
+
+  moveable() {
+    return this.moveCount < 2;
+  }
 }
