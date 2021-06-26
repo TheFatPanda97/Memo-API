@@ -2,6 +2,9 @@ import GameCard from './GameCard';
 import Player from './Player';
 import { getRandInt } from '../utils';
 
+const getSvgUrl = (id) =>
+  `https://raw.githubusercontent.com/TheFatPanda97/Memo-Assets/master/images/animals/${id}.svg`;
+
 export default class Game {
   constructor() {
     this.gameBoard = [];
@@ -31,13 +34,22 @@ export default class Game {
     console.log('board', this.gameBoard);
     console.log('turn', this.turn);
 
-    return this.gameBoard.map((row) => row.map((card) => card.flipped));
+    return this.gameBoard.map((row) => row.map(({ flipped }) => flipped));
+  }
+
+  getUrls() {
+    return this.gameBoard.map((row) => row.map(({ url }) => url));
   }
 
   generateBoard() {
     const ids = [];
+    const urlIds = [];
     for (let i = 0; i < 32; i++) {
       ids.push(i);
+    }
+
+    for (let i = 1; i <= 50; i++) {
+      urlIds.push(i);
     }
 
     for (let i = 0; i < 16; i++) {
@@ -45,14 +57,20 @@ export default class Game {
       ids.splice(ids.indexOf(randId1), 1);
       const randId2 = ids[Math.floor(Math.random() * ids.length)];
       ids.splice(ids.indexOf(randId2), 1);
+      const randSvgId = urlIds[Math.floor(Math.random() * urlIds.length)];
+      urlIds.splice(urlIds.indexOf(randSvgId), 1);
 
       const col1 = randId1 % 4;
       const row1 = (randId1 - col1) / 4;
       const col2 = randId2 % 4;
       const row2 = (randId2 - col2) / 4;
 
+      const svgUrl = getSvgUrl(randSvgId);
+
       this.gameBoard[row1][col1].id = i;
+      this.gameBoard[row1][col1].url = svgUrl;
       this.gameBoard[row2][col2].id = i;
+      this.gameBoard[row2][col2].url = svgUrl;
     }
   }
 
@@ -121,10 +139,8 @@ export default class Game {
   }
 
   checkCorrect(currPlayer) {
-    const id1 =
-      this.gameBoard[currPlayer.gameCards[0].row][currPlayer.gameCards[0].col].id;
-    const id2 =
-      this.gameBoard[currPlayer.gameCards[1].row][currPlayer.gameCards[1].col].id;
+    const id1 = this.gameBoard[currPlayer.gameCards[0].row][currPlayer.gameCards[0].col].id;
+    const id2 = this.gameBoard[currPlayer.gameCards[1].row][currPlayer.gameCards[1].col].id;
 
     console.log(id1, id2);
 

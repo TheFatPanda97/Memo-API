@@ -51,7 +51,6 @@ wss.on('connection', (ws) => {
   });
 
   ws.on('message', (rawMessage) => {
-    // let gameId, game, name, userId, coord, turn, player1, player2, response;
     const message = JSON.parse(rawMessage);
     switch (message.type) {
       case 'init': {
@@ -64,7 +63,6 @@ wss.on('connection', (ws) => {
         game.addPlayer(message.name, ws);
 
         ws.send(serialize({ type: 'gameId', gameId }));
-        console.log(game.gameBoard);
 
         break;
       }
@@ -75,6 +73,7 @@ wss.on('connection', (ws) => {
           ws.gameId = gameId;
           ws.userId = 2;
           const { turn } = game;
+          const allUrls = game.getUrls();
 
           game.addPlayer(message.name, ws);
 
@@ -86,6 +85,8 @@ wss.on('connection', (ws) => {
           player2.send(serialize({ type: 'player2Name', name: player1.name }));
           player1.send(serialize({ type: 'setTurn', currTurn: turn === 1 }));
           player2.send(serialize({ type: 'setTurn', currTurn: turn === 2 }));
+          player1.send(serialize({ type: 'setUrls', allUrls }));
+          player2.send(serialize({ type: 'setUrls', allUrls }));
           player1.send(
             serialize({
               type: 'setScore',
