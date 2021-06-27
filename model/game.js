@@ -72,6 +72,7 @@ export default class Game {
       this.gameBoard[row2][col2].id = i;
       this.gameBoard[row2][col2].url = svgUrl;
     }
+    console.log(this.gameBoard.map((row) => row.map(({ id }) => id)));
   }
 
   addPlayer(name, ws) {
@@ -125,7 +126,8 @@ export default class Game {
         response = { type: 'setScore' };
 
         if (this.checkWin()) {
-          response = { type: 'over', userId: currPlayer.userId };
+          this.winner = this.players.player1.score > this.players.player2.score ? 1 : 2;
+          response = { type: 'setWin', userId: this.winner };
         }
       } else {
         this.turn = this.turn === 1 ? 2 : 1;
@@ -142,12 +144,10 @@ export default class Game {
     const id1 = this.gameBoard[currPlayer.gameCards[0].row][currPlayer.gameCards[0].col].id;
     const id2 = this.gameBoard[currPlayer.gameCards[1].row][currPlayer.gameCards[1].col].id;
 
-    console.log(id1, id2);
-
     return id1 === id2;
   }
 
   checkWin() {
-    return this.gameBoard.every((gameCard) => gameCard.flipped === true);
+    return this.gameBoard.every((row) => row.every((gameCard) => gameCard.flipped));
   }
 }

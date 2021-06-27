@@ -132,7 +132,7 @@ wss.on('connection', (ws) => {
 
         targetPlayer.send(serialize({ type: 'updateBoard', update: [boardUpdate] }));
 
-        const { type, update } = game.verify(userId);
+        const { type, update, userId: winnerUserId } = game.verify(userId);
         const { turn } = game;
         player1.send(serialize({ type: 'setTurn', currTurn: turn === 1 }));
         player2.send(serialize({ type: 'setTurn', currTurn: turn === 2 }));
@@ -158,8 +158,25 @@ wss.on('connection', (ws) => {
               }),
             );
             break;
-          default:
+          case 'setWin':
+            player1.send(
+              serialize({
+                type: 'setScore',
+                player1: player1.score,
+                player2: player2.score,
+              }),
+            );
+            player2.send(
+              serialize({
+                type: 'setScore',
+                player1: player2.score,
+                player2: player1.score,
+              }),
+            );
+            player1.send(serialize({ type: 'setWin', gameWon: winnerUserId === 1 }));
+            player2.send(serialize({ type: 'setWin', gameWon: winnerUserId === 2 }));
             break;
+          default:
         }
 
         break;
