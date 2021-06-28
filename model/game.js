@@ -22,6 +22,23 @@ export default class Game {
     this.generateBoard();
   }
 
+  restart() {
+    this.gameBoard = [];
+    for (let i = 0; i < 8; i++) {
+      const currRow = [];
+      for (let j = 0; j < 4; j++) {
+        currRow.push(new GameCard(0, ''));
+      }
+      this.gameBoard.push(currRow);
+    }
+    this.turn = getRandInt(1, 3);
+    this.players.player1.score = 0;
+    this.players.player2.score = 0;
+    this.gameOver = false;
+    this.winner = null;
+    this.generateBoard();
+  }
+
   getPlayer1() {
     return this.players.player1;
   }

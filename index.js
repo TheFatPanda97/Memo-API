@@ -2,7 +2,7 @@
 import express from 'express';
 import * as wsServer from 'ws';
 import Game from './model/Game';
-import { getRandInt } from './utils';
+import { getRandInt, serialize } from './utils';
 
 const app = express();
 const port = process.env.PORT || 8000;
@@ -32,8 +32,6 @@ const randomGameId = () => {
   }
   return id;
 };
-
-const serialize = (json) => JSON.stringify(json);
 
 wss.on('connection', (ws) => {
   console.log('new client');
@@ -91,14 +89,14 @@ wss.on('connection', (ws) => {
             serialize({
               type: 'setScore',
               player1: player1.score,
-              player2: player1.score,
+              player2: player2.score,
             }),
           );
           player2.send(
             serialize({
               type: 'setScore',
               player1: player1.score,
-              player2: player1.score,
+              player2: player2.score,
             }),
           );
         } else {
@@ -108,13 +106,48 @@ wss.on('connection', (ws) => {
 
         break;
       }
+      case 'restart': {
+        const { gameId } = message;
+        const game = games[gameId];
+        game.restart();
+        const { turn } = game;
+        const allUrls = game.getUrls();
+
+        const player1 = game.getPlayer1();
+        const player2 = game.getPlayer2();
+
+        player1.send(serialize({ type: 'restart' }));
+        player2.send(serialize({ type: 'restart' }));
+        player1.send(serialize({ type: 'player2Name', name: player2.name }));
+        player2.send(serialize({ type: 'player2Name', name: player1.name }));
+        player1.send(serialize({ type: 'setTurn', currTurn: turn === 1 }));
+        player2.send(serialize({ type: 'setTurn', currTurn: turn === 2 }));
+        player1.send(serialize({ type: 'setUrls', allUrls }));
+        player2.send(serialize({ type: 'setUrls', allUrls }));
+        player1.send(
+          serialize({
+            type: 'setScore',
+            player1: player1.score,
+            player2: player2.score,
+          }),
+        );
+        player2.send(
+          serialize({
+            type: 'setScore',
+            player1: player1.score,
+            player2: player2.score,
+          }),
+        );
+
+        break;
+      }
       case 'updateName': {
         const { gameId, userId } = ws;
         const { name } = message;
         const game = games[gameId];
         const player1 = game.getPlayer1();
         const player2 = game.getPlayer2();
-        const desiredPlayer = userId === 1 ? player1 : player2;
+        const desiredPlayer = userId === 1 ? player2 : player1;
 
         desiredPlayer.setName(name);
         desiredPlayer.send(serialize({ type: 'player2Name', name }));

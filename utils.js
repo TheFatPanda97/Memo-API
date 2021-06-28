@@ -4,4 +4,6 @@ export const getRandInt = (min, max) => {
   return Math.floor(Math.random() * (newMax - newMin) + newMin);
 };
 
+export const serialize = (json) => JSON.stringify(json);
+
 export default null;
